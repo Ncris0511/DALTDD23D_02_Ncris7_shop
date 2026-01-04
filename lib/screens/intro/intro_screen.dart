@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../utils/constants.dart';
+import '../../utils/styles.dart';
 
 class IntroScreen extends StatelessWidget {
   const IntroScreen({super.key});
@@ -8,33 +9,38 @@ class IntroScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white, //Nền trắng tinh
+      backgroundColor: AppColors.white, // Nền trắng
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             children: [
-              const Spacer(flex: 2), //Đẩy nội dung xuống giữa màn hình
+              const Spacer(flex: 2),
+
               Image.asset('assets/images/logo.png', width: 150),
+
               const SizedBox(height: 30),
+
               Text(
                 "Ncris7",
                 style: GoogleFonts.poppins(
                   fontSize: 40,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.textTitle, //Màu đen đậm
+                  color: AppColors.textTitle,
                 ),
               ),
+
               const SizedBox(height: 10),
               Text(
-                "Nâng tầm trải nghiệm\n\t\t\t\tmua sắm của bạn",
-                style: GoogleFonts.roboto(
-                  fontSize: 16,
-                  color: AppColors.textBody,
+                "Nâng tầm trải nghiệm\n\t\tmua sắm của bạn",
+                textAlign: TextAlign.center, // Căn giữa cho đẹp
+                style: AppStyles.body.copyWith(
+                  fontSize: 16, // Ghi đè size 14 mặc định thành 16
                   height: 1.5,
                 ),
               ),
-              const Spacer(flex: 3), //Khoảng trống ở giữa
+
+              const Spacer(flex: 3),
               SizedBox(
                 width: double.infinity,
                 height: 55,
@@ -42,35 +48,29 @@ class IntroScreen extends StatelessWidget {
                   onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    elevation: 0, //Kh có bóng đổ
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30), //Bo tròn 30
+                      borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Bắt đầu",
-                    style: TextStyle(
+                    // 👇 Gọi style chuẩn từ kho ra, chỉnh size lên 18
+                    style: AppStyles.buttonText.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textWhite,
                     ),
                   ),
                 ),
               ),
+
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Tôi đã có tài khoản",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.textTitle,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                  Text("Tôi đã có tài khoản", style: AppStyles.h3),
                   const SizedBox(width: 10),
-                  //Nút tròn nhỏ có mũi tên
+
                   InkWell(
                     onTap: () {},
                     borderRadius: BorderRadius.circular(50),
@@ -79,7 +79,7 @@ class IntroScreen extends StatelessWidget {
                       height: 30,
                       decoration: const BoxDecoration(
                         color: AppColors.primary,
-                        shape: BoxShape.circle, //Hình tròn
+                        shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.arrow_forward,
