@@ -59,7 +59,7 @@ class IntroScreen extends StatelessWidget {
                   ),
                   child: Text(
                     "Bắt đầu",
-                    // 👇 Gọi style chuẩn từ kho ra, chỉnh size lên 18
+                    // Gọi style chuẩn từ kho ra, chỉnh size lên 18
                     style: AppStyles.buttonText.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
