@@ -97,7 +97,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               Text("Tạo Tài Khoản", style: AppStyles.h1),
               const SizedBox(height: 30),
 
-              // --- CÁC Ô NHẬP LIỆU ---
               _buildTextField(
                 controller: _fullNameController,
                 label: "Họ và tên",
@@ -206,7 +205,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // --- WIDGET CON ĐÃ ĐƯỢC NÂNG CẤP ---
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -223,12 +221,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       style: AppStyles.h3,
       decoration: InputDecoration(
         labelText: label,
-        // Label khi chưa nhập màu xám, nhập rồi thì màu xanh (mặc định của Flutter)
+        // Label khi chưa nhập màu xám, nhập rồi thì màu xanh
         labelStyle: AppStyles.body.copyWith(color: Colors.grey.shade600),
 
         prefixIcon: Icon(icon, color: Colors.grey.shade500),
 
-        // Icon mắt thần (chỉ hiện khi là ô password)
+        // Icon mắt thần
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
@@ -247,19 +245,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
           horizontal: 16,
         ),
 
-        // Viền khi bình thường (Màu xám nhạt -> Đỡ rối mắt)
+        // Viền khi bình thường
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: Colors.grey.shade300),
         ),
 
-        // Viền khi bấm vào (Màu Primary -> Nổi bật)
+        // Viền khi bấm vào
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
 
-        // Viền khi có lỗi (nếu cần dùng sau này)
+        // Viền khi có lỗi
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.red),
