@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ncris7shop/screens/auth/login_screen.dart';
 import '../../services/auth_service.dart';
 import '../../utils/constants.dart';
 import '../../utils/styles.dart';
@@ -189,7 +190,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               // Nút Thoát
               TextButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                ),
                 child: Text(
                   "Đã có tài khoản? Đăng nhập ngay",
                   style: AppStyles.body.copyWith(
