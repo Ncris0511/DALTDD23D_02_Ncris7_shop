@@ -73,14 +73,17 @@ class AuthService {
     }
   }
 
-  Future<Map<String, dynamic>> forgotPassword(String email) async {
-    final url = Uri.parse('${ApiConfig.baseUrl}/auth/forgot-password');
+  Future<Map<String, dynamic>> resetPassword(
+    String email,
+    String newPassword,
+  ) async {
+    final url = Uri.parse('${ApiConfig.baseUrl}/auth/reset-password-email');
 
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email}),
+        body: jsonEncode({'email': email, 'new_password': newPassword}),
       );
 
       final data = jsonDecode(response.body);
@@ -88,7 +91,10 @@ class AuthService {
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       } else {
-        return {'success': false, 'message': data['message']};
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Lỗi không xác định',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Lỗi kết nối: $e'};

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../../config/api_config.dart';
+// Bỏ import http và dart:convert vì đã chuyển sang service
 import '../../utils/constants.dart';
 import '../../utils/styles.dart';
 import '../../services/auth_service.dart';
@@ -16,10 +14,15 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   final _newPassController = TextEditingController();
+
+  // Khởi tạo AuthService
+  final AuthService _authService = AuthService();
+
   bool _isLoading = false;
   bool _isObscure = true;
 
   void _handleResetPassword() async {
+    // 1. Kiểm tra đầu vào
     if (_emailController.text.isEmpty || _newPassController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -32,58 +35,47 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     setState(() => _isLoading = true);
 
-    try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/auth/reset-password-email');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _emailController.text,
-          'new_password': _newPassController.text,
-        }),
-      );
+    // 2. Gọi Service thay vì gọi trực tiếp http
+    final result = await _authService.resetPassword(
+      _emailController.text,
+      _newPassController.text,
+    );
 
-      final data = jsonDecode(response.body);
+    setState(() => _isLoading = false);
 
-      setState(() => _isLoading = false);
-
-      if (response.statusCode == 200) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            backgroundColor: AppColors.white,
-            title: Text(
-              "Thành công",
-              style: AppStyles.h2.copyWith(color: Colors.green),
-            ),
-            content: Text(data['message'], style: AppStyles.body),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  "Đăng nhập ngay",
-                  style: TextStyle(color: AppColors.primary),
-                ),
+    // 3. Xử lý kết quả trả về từ Service
+    if (result['success']) {
+      // Thành công -> Hiện Dialog
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          backgroundColor: AppColors.white,
+          title: Text(
+            "Thành công",
+            style: AppStyles.h2.copyWith(color: Colors.green),
+          ),
+          content: Text(result['message'], style: AppStyles.body),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Đóng dialog
+                Navigator.pop(context); // Quay về màn hình login
+              },
+              child: const Text(
+                "Đăng nhập ngay",
+                style: TextStyle(color: AppColors.primary),
               ),
-            ],
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(data['message']),
-            backgroundColor: AppColors.primaryRed,
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() => _isLoading = false);
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Thất bại -> Hiện SnackBar lỗi
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Lỗi kết nối: $e"),
+          content: Text(result['message']),
           backgroundColor: AppColors.primaryRed,
         ),
       );
@@ -96,8 +88,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
         title: Text("Đặt lại mật khẩu", style: AppStyles.h2),
-        backgroundColor: AppColors.backgroundLight, // Hòa vào nền
-        foregroundColor: AppColors.textTitle, // Màu nút back
+        backgroundColor: AppColors.backgroundLight,
+        foregroundColor: AppColors.textTitle,
         elevation: 0,
         centerTitle: true,
       ),
@@ -197,7 +189,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _handleResetPassword,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary, // Màu xanh chủ đạo
+                  backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

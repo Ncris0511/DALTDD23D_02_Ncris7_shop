@@ -4,7 +4,6 @@ import '../../utils/constants.dart';
 import '../../utils/styles.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
-// import 'register_screen.dart'; // <--- Đừng quên tạo và import trang đăng ký nhé
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,7 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
           backgroundColor: Colors.green,
         ),
       );
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
     } else {
       showDialog(
         context: context,
@@ -70,7 +68,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Widget TextField dùng chung
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -158,11 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 isPassword: true,
               ),
 
-              // --- HÀNG CHỨA 2 NÚT (TRÁI: ĐĂNG KÝ - PHẢI: QUÊN MK) ---
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Đẩy 2 bên
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Nút Đăng ký (Bên trái)
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -182,7 +177,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
 
-                  // Nút Quên mật khẩu (Bên phải)
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -204,7 +198,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
 
-              // --------------------------------------------------------
               const SizedBox(height: 20),
 
               ElevatedButton(
