@@ -4,4 +4,8 @@ class ApiConfig {
   //Các đường dẫn con
   static const String register = "$baseUrl/auth/register";
   static const String login = "$baseUrl/auth/login";
+  static const String address = "$baseUrl/addresses";
+  static const String order = "$baseUrl/orders";
+  static const String cart = "$baseUrl/cart";
+  static const String voucher = "$baseUrl//marketing/check-voucher";
 }
