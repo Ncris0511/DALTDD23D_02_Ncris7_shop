@@ -34,29 +34,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _initData();
   }
 
-  /*void _initData() async {
-    setState(() => _isLoading = true);
-
-    1. Lấy địa chỉ mặc định
-    final addresses = await _addressService.getMyAddresses();
-    if (addresses.isNotEmpty) {
-      Tìm địa chỉ mặc định, nếu không có lấy cái đầu tiên
-      _selectedAddress = addresses.firstWhere(
-        (element) => element['is_default'] == true,
-        orElse: () => addresses.first,
-      );
-    }
-
-    2. Lấy giỏ hàng để tính tiền
-    _cartItems = await _orderService.getCart();
-
-    _calculateTotal();
-    setState(() => _isLoading = false);
-  }*/
   void _initData() async {
     setState(() => _isLoading = true);
 
-    // 1. Lấy địa chỉ (Giữ nguyên logic API)
+    // 1. Lấy địa chỉ
     final addresses = await _addressService.getMyAddresses();
     if (addresses.isNotEmpty) {
       _selectedAddress = addresses.firstWhere(
@@ -65,43 +46,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
     }
 
-    // 2. MOCK DATA GIỎ HÀNG (Dữ liệu giả để test giao diện)
-    // Thay vì gọi API: _cartItems = await _orderService.getCart();
+    // 2. GỌI API GIỎ HÀNG THẬT (Bỏ đoạn Mock data đi)
+    _cartItems = await _orderService.getCart();
 
-    _cartItems = [
-      {
-        "product": {
-          "name": "Giày Nike Air Force 1",
-          "sale_price": "2500000",
-          "thumbnail_url":
-              "https://res.cloudinary.com/dlroma8l1/image/upload/v1767503217/logo_akka_bocbfg.png",
-        },
-        "variant": {"color": "Trắng", "size": "42"},
-        "quantity": 1,
-      },
-      {
-        "product": {
-          "name": "Áo Thun Adidas Originals",
-          "sale_price": "850000",
-          "price": "1000000",
-          "thumbnail_url":
-              "https://res.cloudinary.com/dlroma8l1/image/upload/v1767503217/logo_akka_bocbfg.png",
-        },
-        "variant": {"color": "Đen", "size": "L"},
-        "quantity": 2,
-      },
-      {
-        "product": {
-          "name": "Mũ Lưỡi Trai MLB",
-          "sale_price": "650000",
-          "price": "650000",
-          "thumbnail_url":
-              "https://res.cloudinary.com/dlroma8l1/image/upload/v1767503217/logo_akka_bocbfg.png",
-        },
-        "variant": {"color": "Xanh Dương", "size": "F"},
-        "quantity": 1,
-      },
-    ];
+    // Nếu giỏ hàng rỗng thì hiện thông báo hoặc xử lý tùy ý
+    if (_cartItems.isEmpty) {
+      // Có thể print ra để debug xem có lấy được không
+      print("Giỏ hàng đang trống");
+    }
 
     _calculateTotal();
     setState(() => _isLoading = false);
@@ -109,17 +61,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   void _calculateTotal() {
     double temp = 0;
-    for (var item in _cartItems) {
-      double price =
-          double.tryParse(
-            item['product']['sale_price'] ?? item['product']['price'],
-          ) ??
-          0;
-      temp += price * item['quantity'];
+    try {
+      for (var item in _cartItems) {
+        // --- SỬA LỖI TẠI ĐÂY ---
+        // 1. Lấy giá trị ra (Backend có thể trả về số hoặc chữ)
+        var salePrice = item['product']['sale_price'];
+        var regularPrice = item['product']['price'];
+
+        // 2. Ép kiểu về String (.toString()) TRƯỚC khi Parse
+        // Dù là số hay chữ thì .toString() đều xử lý được hết
+        String priceString = (salePrice ?? regularPrice ?? "0").toString();
+        double price = double.tryParse(priceString) ?? 0;
+
+        // 3. Làm tương tự với số lượng
+        String qtyString = (item['quantity'] ?? "1").toString();
+        int quantity = int.tryParse(qtyString) ?? 1;
+
+        temp += price * quantity;
+      }
+    } catch (e) {
+      print("⚠️ Lỗi tính tiền: $e");
     }
-    setState(() {
-      _totalPrice = temp;
-    });
+
+    // Cập nhật UI (Tắt xoay)
+    if (mounted) {
+      setState(() {
+        _totalPrice = temp;
+      });
+    }
   }
 
   // Hàm xử lý áp mã Voucher
@@ -277,50 +246,78 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildProductItem(dynamic item) {
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: 'đ');
-    double price =
-        double.tryParse(
-          item['product']['sale_price'] ?? item['product']['price'],
-        ) ??
-        0;
+
+    // 1. Xử lý giá tiền
+    var salePrice = item['product']['sale_price'];
+    var regularPrice = item['product']['price'];
+    String priceString = (salePrice ?? regularPrice ?? "0").toString();
+    double price = double.tryParse(priceString) ?? 0;
+
+    // 2. XỬ LÝ ẢNH (Logic mới)
+    String thumbUrl = item['product']['thumbnail_url']?.toString() ?? "";
+    String variantUrl = item['variant']['image_url']?.toString() ?? "";
+
+    // Chỉ lấy ảnh biến thể nếu nó hợp lệ (Có chữ http)
+    // Nếu ảnh biến thể lỗi -> Tự động quay về lấy ảnh sản phẩm gốc
+    String finalImageUrl = (variantUrl.contains("http"))
+        ? variantUrl
+        : thumbUrl;
+
+    // Nếu cả 2 đều lỗi -> Dùng ảnh giữ chỗ
+    if (!finalImageUrl.contains("http")) {
+      finalImageUrl = "https://via.placeholder.com/150"; // Ảnh mặc định online
+    }
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ảnh sản phẩm
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              item['product']['thumbnail_url'] ??
-                  'https://via.placeholder.com/80',
-              width: 70,
-              height: 70,
+              finalImageUrl,
+              width: 80,
+              height: 80,
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  width: 80,
+                  height: 80,
+                  color: Colors.grey[300],
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.broken_image, color: Colors.grey),
+                      Text("Lỗi ảnh", style: TextStyle(fontSize: 10)),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
           const SizedBox(width: 12),
-          // Thông tin
+          // ... (Phần hiển thị tên và giá giữ nguyên như cũ)
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item['product']['name'],
+                  item['product']['name']?.toString() ?? "Sản phẩm",
                   style: AppStyles.h3,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  maxLines: 2,
                 ),
                 Text(
                   "Phân loại: ${item['variant']['color']} - ${item['variant']['size']}",
-                  style: AppStyles.body.copyWith(fontSize: 12),
+                  style: AppStyles.body,
                 ),
-                const SizedBox(height: 4),
+                // ...
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       currencyFormat.format(price),
-                      style: AppStyles.price.copyWith(fontSize: 14),
+                      style: AppStyles.price.copyWith(fontSize: 15),
                     ),
                     Text("x${item['quantity']}", style: AppStyles.body),
                   ],

@@ -84,20 +84,22 @@ class _AddressListScreenState extends State<AddressListScreen> {
               },
             ),
       // Nút thêm địa chỉ
+      // Trong file address_list_screen.dart
       floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
         onPressed: () async {
-          // Chuyển sang trang thêm địa chỉ và chờ kết quả trả về
+          // 1. Chờ kết quả trả về từ màn hình thêm mới
           final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const AddAddressScreen()),
           );
 
-          // Nếu thêm thành công (result == true) thì load lại danh sách
+          // 2. Nếu kết quả là true (nghĩa là đã thêm thành công)
           if (result == true) {
-            _fetchAddresses();
+            print("👉 Đã thêm địa chỉ, đang tải lại danh sách...");
+            _fetchAddresses(); // <--- Gọi hàm này để load lại API
           }
         },
-        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );

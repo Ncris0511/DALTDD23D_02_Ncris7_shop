@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ncris7shop/screens/auth/login_screen.dart';
 import 'package:ncris7shop/screens/auth/register_screen.dart';
 import '../../utils/constants.dart';
 import '../../utils/styles.dart';
@@ -76,7 +77,14 @@ class IntroScreen extends StatelessWidget {
                   const SizedBox(width: 10),
 
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LoginScreen(),
+                        ),
+                      );
+                    },
                     borderRadius: BorderRadius.circular(50),
                     child: Container(
                       width: 30,

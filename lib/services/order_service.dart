@@ -13,7 +13,8 @@ class OrderService {
   Future<List<dynamic>> getCart() async {
     final token = await _getToken();
     final url = Uri.parse(ApiConfig.cart);
-
+    print("👉 Đang gọi API: $url"); // <--- THÊM DÒNG NÀY
+    print("👉 Token: $token");
     try {
       final response = await http.get(
         url,

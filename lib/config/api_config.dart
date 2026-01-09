@@ -7,5 +7,5 @@ class ApiConfig {
   static const String address = "$baseUrl/addresses";
   static const String order = "$baseUrl/orders";
   static const String cart = "$baseUrl/cart";
-  static const String voucher = "$baseUrl//marketing/check-voucher";
+  static const String voucher = "$baseUrl/marketing/vouchers/check";
 }
