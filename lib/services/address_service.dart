@@ -45,10 +45,6 @@ class AddressService {
   Future<List<dynamic>> getMyAddresses() async {
     final token = await _getToken();
     final url = Uri.parse('${ApiConfig.baseUrl}/addresses');
-
-    print("👉 Đang gọi: $url"); // In URL
-    print("👉 Token: $token"); // In Token
-
     try {
       final response = await http.get(
         url,
@@ -58,21 +54,64 @@ class AddressService {
         },
       );
 
-      print(
-        "👉 Server phản hồi (${response.statusCode}): ${response.body}",
-      ); // <--- QUAN TRỌNG
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['addresses'] ?? [];
       } else {
-        // In lỗi ra để biết đường sửa
-        print("❌ Lỗi Server: ${response.statusCode} - ${response.body}");
         return [];
       }
     } catch (e) {
-      print("❌ Lỗi kết nối: $e");
       return [];
+    }
+  }
+  // ... (Các hàm cũ giữ nguyên)
+
+  // 2. Xóa địa chỉ
+  Future<bool> deleteAddress(int addressId) async {
+    final token = await _getToken();
+    final url = Uri.parse(
+      '${ApiConfig.address}/$addressId',
+    ); // Giả sử API xóa là DELETE /addresses/:id
+
+    try {
+      final response = await http.delete(
+        url,
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Lỗi xóa địa chỉ: $e");
+      return false;
+    }
+  }
+
+  // 3. Cập nhật địa chỉ
+  Future<Map<String, dynamic>> updateAddress(
+    int addressId,
+    Map<String, dynamic> body,
+  ) async {
+    final token = await _getToken();
+    final url = Uri.parse('${ApiConfig.address}/$addressId');
+
+    try {
+      final response = await http.put(
+        // Hoặc http.patch tùy backend
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(body),
+      );
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': 'Cập nhật thành công!'};
+      } else {
+        return {'success': false, 'message': data['message'] ?? 'Lỗi cập nhật'};
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Lỗi kết nối: $e'};
     }
   }
 }

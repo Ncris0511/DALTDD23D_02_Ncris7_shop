@@ -4,7 +4,10 @@ import '../../utils/styles.dart';
 import '../../services/address_service.dart';
 
 class AddAddressScreen extends StatefulWidget {
-  const AddAddressScreen({super.key});
+  // Biến này để nhận dữ liệu khi bấm nút Sửa
+  final Map<String, dynamic>? existingAddress;
+
+  const AddAddressScreen({super.key, this.existingAddress});
 
   @override
   State<AddAddressScreen> createState() => _AddAddressScreenState();
@@ -22,13 +25,56 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
   bool _isLoading = false;
   final AddressService _addressService = AddressService();
 
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  // QUAN TRỌNG: Giải phóng bộ nhớ khi thoát màn hình
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _cityController.dispose();
+    _districtController.dispose();
+    _wardController.dispose();
+    _addressLineController.dispose();
+    super.dispose();
+  }
+
+  // Hàm điền dữ liệu cũ vào form (Nếu là Sửa)
+  void _initData() {
+    if (widget.existingAddress != null) {
+      final data = widget.existingAddress!;
+      _nameController.text = data['recipient_name']?.toString() ?? '';
+      _phoneController.text = data['phone_number']?.toString() ?? '';
+      _cityController.text = data['city']?.toString() ?? '';
+      _districtController.text = data['district']?.toString() ?? '';
+      _wardController.text = data['ward']?.toString() ?? '';
+      _addressLineController.text = data['address_line']?.toString() ?? '';
+
+      // Xử lý logic true/false hoặc 1/0 cho địa chỉ mặc định (Fix lỗi SQL Server trả về 1)
+      var def = data['is_default'];
+      if (def == true ||
+          def == 1 ||
+          def.toString() == 'true' ||
+          def.toString() == '1') {
+        _isDefault = true;
+      } else {
+        _isDefault = false;
+      }
+    }
+  }
+
   void _handleSave() async {
-    if (_nameController.text.isEmpty ||
-        _phoneController.text.isEmpty ||
-        _cityController.text.isEmpty ||
-        _districtController.text.isEmpty ||
-        _wardController.text.isEmpty ||
-        _addressLineController.text.isEmpty) {
+    // 1. Kiểm tra nhập liệu
+    if (_nameController.text.trim().isEmpty ||
+        _phoneController.text.trim().isEmpty ||
+        _cityController.text.trim().isEmpty ||
+        _districtController.text.trim().isEmpty ||
+        _wardController.text.trim().isEmpty ||
+        _addressLineController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Vui lòng điền đầy đủ thông tin!")),
       );
@@ -38,27 +84,57 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     setState(() => _isLoading = true);
 
     final body = {
-      "recipient_name": _nameController.text,
-      "phone_number": _phoneController.text,
-      "city": _cityController.text,
-      "district": _districtController.text,
-      "ward": _wardController.text,
-      "address_line": _addressLineController.text,
+      "recipient_name": _nameController.text.trim(),
+      "phone_number": _phoneController.text.trim(),
+      "city": _cityController.text.trim(),
+      "district": _districtController.text.trim(),
+      "ward": _wardController.text.trim(),
+      "address_line": _addressLineController.text.trim(),
       "is_default": _isDefault,
     };
 
-    final result = await _addressService.addAddress(body);
+    Map<String, dynamic> result;
 
-    setState(() => _isLoading = false);
+    try {
+      // 2. Kiểm tra chế độ Thêm hay Sửa
+      if (widget.existingAddress != null) {
+        // --- CHẾ ĐỘ SỬA ---
+        // Lấy ID (Ưu tiên lấy 'address_id', nếu không có thì thử lấy 'id')
+        int id =
+            widget.existingAddress!['address_id'] ??
+            widget.existingAddress!['id'];
+        result = await _addressService.updateAddress(id, body);
+      } else {
+        // --- CHẾ ĐỘ THÊM MỚI ---
+        result = await _addressService.addAddress(body);
+      }
 
-    if (result['success']) {
-      // Trả về true để màn hình trước biết là cần load lại danh sách
-      if (mounted) Navigator.pop(context, true);
-    } else {
+      setState(() => _isLoading = false);
+
+      // 3. Xử lý kết quả
+      if (result['success'] == true) {
+        if (mounted) {
+          Navigator.pop(
+            context,
+            true,
+          ); // Trả về true để màn hình danh sách load lại
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? "Có lỗi xảy ra"),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(result['message']),
+            content: Text("Lỗi ứng dụng: $e"),
             backgroundColor: AppColors.error,
           ),
         );
@@ -66,6 +142,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     }
   }
 
+  // Widget ô nhập liệu chuẩn Style
   Widget _buildTextField(
     String label,
     TextEditingController controller, {
@@ -90,6 +167,10 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.border),
           ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          ),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 16,
@@ -101,14 +182,20 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
 
   @override
   Widget build(BuildContext context) {
+    bool isEditing = widget.existingAddress != null;
+
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       appBar: AppBar(
-        title: Text("Thêm địa chỉ mới", style: AppStyles.h2),
+        title: Text(
+          isEditing ? "Cập nhật địa chỉ" : "Thêm địa chỉ mới",
+          style: AppStyles.h2,
+        ),
         backgroundColor: AppColors.white,
         foregroundColor: AppColors.textTitle,
         elevation: 0,
         centerTitle: true,
+        iconTheme: const IconThemeData(color: AppColors.textTitle),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -119,6 +206,13 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,16 +226,14 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                     type: TextInputType.phone,
                   ),
 
-                  const Divider(height: 30),
-                  Text("Địa chỉ", style: AppStyles.h3),
+                  const Divider(height: 30, color: AppColors.border),
+
+                  Text("Địa chỉ nhận hàng", style: AppStyles.h3),
                   const SizedBox(height: 16),
                   _buildTextField("Tỉnh / Thành phố", _cityController),
                   _buildTextField("Quận / Huyện", _districtController),
                   _buildTextField("Phường / Xã", _wardController),
-                  _buildTextField(
-                    "Tên đường, Tòa nhà, Số nhà",
-                    _addressLineController,
-                  ),
+                  _buildTextField("Tên đường, Số nhà", _addressLineController),
                 ],
               ),
             ),
@@ -164,6 +256,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
             ),
             const SizedBox(height: 30),
 
+            // Nút Lưu
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -174,10 +267,21 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 0,
                 ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text("HOÀN THÀNH", style: AppStyles.buttonText),
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: AppColors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        isEditing ? "LƯU THAY ĐỔI" : "HOÀN THÀNH",
+                        style: AppStyles.buttonText,
+                      ),
               ),
             ),
           ],
