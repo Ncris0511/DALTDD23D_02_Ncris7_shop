@@ -4,6 +4,7 @@ import '../../utils/constants.dart';
 import '../../utils/styles.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
+import '../user/checkout_screen.dart'; // <--- 1. BẠN NHỚ THÊM DÒNG IMPORT NÀY
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -41,12 +42,24 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
+      // Hiện thông báo chào mừng
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Xin chào ${result['user']['name']}!"),
           backgroundColor: Colors.green,
+          duration: const Duration(seconds: 1), // Hiện nhanh rồi chuyển trang
         ),
       );
+
+      // --- 2. CHUYỂN THẲNG VÀO TRANG THANH TOÁN ---
+      // Dùng pushReplacement để khi ấn nút Back sẽ không quay lại trang Login nữa
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+        );
+      }
+      // ---------------------------------------------
     } else {
       showDialog(
         context: context,
@@ -68,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // ... (Phần Widget _buildTextField và build giữ nguyên như cũ)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -170,9 +184,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Text(
                       "Chưa có tài khoản?",
                       style: AppStyles.body.copyWith(
-                        color: AppColors.textBody, // Màu xám cho chữ thường
+                        color: AppColors.textBody,
                         fontWeight: FontWeight.w500,
-                        fontSize: 13, // Chỉnh nhỏ chút để vừa hàng
+                        fontSize: 13,
                       ),
                     ),
                   ),
