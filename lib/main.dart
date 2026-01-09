@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ncris7shop/screens/intro/intro_screen.dart';
-import 'package:ncris7shop/screens/user/checkout_screen.dart';
-import 'package:provider/provider.dart';
 
 void main() {
   runApp(const MyApp());
