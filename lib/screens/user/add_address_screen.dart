@@ -31,7 +31,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     _initData();
   }
 
-  // QUAN TRỌNG: Giải phóng bộ nhớ khi thoát màn hình
+  //Giải phóng bộ nhớ khi thoát màn hình
   @override
   void dispose() {
     _nameController.dispose();
@@ -98,14 +98,14 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
     try {
       // 2. Kiểm tra chế độ Thêm hay Sửa
       if (widget.existingAddress != null) {
-        // --- CHẾ ĐỘ SỬA ---
+        // CHẾ ĐỘ SỬA
         // Lấy ID (Ưu tiên lấy 'address_id', nếu không có thì thử lấy 'id')
         int id =
             widget.existingAddress!['address_id'] ??
             widget.existingAddress!['id'];
         result = await _addressService.updateAddress(id, body);
       } else {
-        // --- CHẾ ĐỘ THÊM MỚI ---
+        // CHẾ ĐỘ THÊM MỚI
         result = await _addressService.addAddress(body);
       }
 

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:ncris7shop/screens/auth/register_screen.dart';
+import 'package:ncris7shop/screens/user/main_screen.dart';
+import 'package:ncris7shop/screens/admin/admin_order_list_screen.dart'; // <--- 1. IMPORT TRANG ADMIN
 import '../../utils/constants.dart';
 import '../../utils/styles.dart';
 import '../../services/auth_service.dart';
 import 'forgot_password_screen.dart';
-import '../user/checkout_screen.dart'; // <--- 1. BẠN NHỚ THÊM DÒNG IMPORT NÀY
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -22,7 +23,9 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isObscure = true;
 
   void _handleLogin() async {
-    if (_emailController.text.isEmpty || _passController.text.isEmpty) {
+    // 1. Kiểm tra nhập liệu
+    if (_emailController.text.trim().isEmpty ||
+        _passController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Vui lòng nhập đầy đủ thông tin!"),
@@ -34,54 +37,79 @@ class _LoginScreenState extends State<LoginScreen> {
 
     setState(() => _isLoading = true);
 
+    // 2. Gọi API Đăng nhập
     final result = await _authService.login(
-      _emailController.text,
-      _passController.text,
+      _emailController.text.trim(),
+      _passController.text.trim(),
     );
 
     setState(() => _isLoading = false);
 
+    // 3. Xử lý kết quả
     if (result['success']) {
-      // Hiện thông báo chào mừng
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Xin chào ${result['user']['name']}!"),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 1), // Hiện nhanh rồi chuyển trang
-        ),
-      );
+      // Lấy role từ kết quả trả về
+      // (Lưu ý: Backend phải trả về 'admin' hoặc 'customer')
+      String role = result['role']?.toString().toLowerCase() ?? 'customer';
+      String name = result['user']?['name'] ?? 'Bạn';
 
-      // --- 2. CHUYỂN THẲNG VÀO TRANG THANH TOÁN ---
-      // Dùng pushReplacement để khi ấn nút Back sẽ không quay lại trang Login nữa
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Xin chào $name! (Quyền: $role)"),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+
+        //PHÂN QUYỀN ĐIỀU HƯỚNG
+        if (role == 'admin') {
+          // NẾU LÀ ADMIN -> Vào trang Quản lý đơn hàng
+          print("👉 Điều hướng: ADMIN");
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminOrderListScreen(),
+            ),
+            (route) => false,
+          );
+        } else {
+          // NẾU LÀ USER -> Vào trang Mua sắm
+          print("👉 Điều hướng: USER");
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+            (route) => false,
+          );
+        }
+      }
+    } else {
+      // Đăng nhập thất bại
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            backgroundColor: AppColors.white,
+            title: Text("Lỗi đăng nhập", style: AppStyles.h2),
+            content: Text(
+              result['message'] ?? "Có lỗi xảy ra",
+              style: AppStyles.body,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text(
+                  "OK",
+                  style: TextStyle(color: AppColors.primary),
+                ),
+              ),
+            ],
+          ),
         );
       }
-      // ---------------------------------------------
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          backgroundColor: AppColors.white,
-          title: Text("Lỗi đăng nhập", style: AppStyles.h2),
-          content: Text(result['message'], style: AppStyles.body),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                "OK",
-                style: TextStyle(color: AppColors.primary),
-              ),
-            ),
-          ],
-        ),
-      );
     }
   }
 
-  // ... (Phần Widget _buildTextField và build giữ nguyên như cũ)
+  // ... (Giữ nguyên phần UI _buildTextField và build)
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
@@ -137,7 +165,15 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 60),
-              Image.asset('assets/images/logo.png', width: 80),
+              Image.asset(
+                'assets/images/logo.png',
+                width: 80,
+                errorBuilder: (_, __, ___) => const Icon(
+                  Icons.shopping_bag,
+                  size: 80,
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(height: 20),
 
               Text(

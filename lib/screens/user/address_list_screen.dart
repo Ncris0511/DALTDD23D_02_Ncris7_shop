@@ -123,7 +123,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
               itemBuilder: (context, index) {
                 final addr = _addresses[index];
 
-                // --- 🔥 LOGIC QUAN TRỌNG: XỬ LÝ HIỂN THỊ MẶC ĐỊNH 🔥 ---
+                //  LOGIC QUAN TRỌNG: XỬ LÝ HIỂN THỊ MẶC ĐỊNH
                 // Chấp nhận cả true, 1 (số), "true", "1" (chuỗi)
                 var rawDef = addr['is_default'];
                 bool isDefault =
@@ -131,7 +131,6 @@ class _AddressListScreenState extends State<AddressListScreen> {
                     rawDef == 1 ||
                     rawDef.toString() == 'true' ||
                     rawDef.toString() == '1';
-                // --------------------------------------------------------
 
                 return Card(
                   color: AppColors.white,
@@ -182,7 +181,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                     ),
                                     const SizedBox(width: 8),
 
-                                    // --- HIỂN THỊ NHÃN MẶC ĐỊNH ---
+                                    //HIỂN THỊ NHÃN MẶC ĐỊNH
                                     if (isDefault)
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -225,7 +224,7 @@ class _AddressListScreenState extends State<AddressListScreen> {
                                   color: AppColors.border,
                                 ),
 
-                                // --- Hàng nút thao tác (Sửa / Xóa) ---
+                                //Hàng nút thao tác (Sửa / Xóa)
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [

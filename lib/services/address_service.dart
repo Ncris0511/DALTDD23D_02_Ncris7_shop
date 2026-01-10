@@ -30,7 +30,6 @@ class AddressService {
         },
         body: jsonEncode(body),
       );
-      // ... (Phần xử lý response giữ nguyên như cũ)
       final data = jsonDecode(response.body);
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'message': 'Thêm địa chỉ thành công!'};
@@ -64,7 +63,6 @@ class AddressService {
       return [];
     }
   }
-  // ... (Các hàm cũ giữ nguyên)
 
   // 2. Xóa địa chỉ
   Future<bool> deleteAddress(int addressId) async {
@@ -95,7 +93,6 @@ class AddressService {
 
     try {
       final response = await http.put(
-        // Hoặc http.patch tùy backend
         url,
         headers: {
           'Content-Type': 'application/json',
